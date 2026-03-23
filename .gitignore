@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# 输出目录（含本地笔记和进度文件）
+output/
+
+# 导入进度文件
+import_progress.json
+
+# 临时文件
+*.tmp
+temp_*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
