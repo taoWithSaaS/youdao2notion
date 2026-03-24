@@ -773,8 +773,10 @@ class ExportImporter:
         else:
             folder_path, filename = "", parts[0]
 
-        # 去掉文件扩展名作为标题
+        # 去掉文件扩展名作为标题（有道云文件名可能带 .note，如 xxx.note.pdf）
         title = os.path.splitext(filename)[0]
+        if title.endswith(".note"):
+            title = title[:-5]
 
         parent_id = self.ensure_folder(folder_path)
 
