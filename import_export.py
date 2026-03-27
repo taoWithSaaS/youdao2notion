@@ -427,29 +427,39 @@ def pdf_to_markdown(pdf_path: str) -> str:
         prev_page = -1
         prev_x1 = 0  # 上一行的右边缘 x 坐标
         in_code_block = False
-        code_block_buf = []  # 缓存代码块行，用于去除行号
+        code_block_buf = []  # 缓存代码块行，(text, x) 用于去除行号
 
         def _flush_code_block():
-            """将缓存的代码块行写入 lines，自动去除独立行号"""
+            """将缓存的代码块行写入 lines，自动去除独立行号。
+            有道云PDF代码块的行号在左侧（x 较小），内容在右侧（x 较大）。
+            用 x 坐标 + 纯数字判断来区分行号和内容。
+            """
             if not code_block_buf:
                 return
-            # 检测独立行号行：只包含一个数字的行，如 "1"、"2"、"13"
-            # 有道云PDF代码块的行号会被提取为独立行，穿插在内容行之间
             import re as _re2
-            num_indices = []
-            nums = []
-            for i, cl in enumerate(code_block_buf):
+            # 分离纯数字行和内容行
+            digit_items = []  # (index, x, num)
+            content_xs = []
+            for i, (cl, cx) in enumerate(code_block_buf):
                 if _re2.match(r'^\d+$', cl.strip()):
-                    num_indices.append(i)
-                    nums.append(int(cl.strip()))
-            # 如果这些数字构成从1开始的连续序列，说明是行号，去掉
-            if nums and nums == list(range(1, max(nums) + 1)) and len(nums) >= 2:
-                num_set = set(num_indices)
-                for i, cl in enumerate(code_block_buf):
-                    if i not in num_set:
-                        lines.append(cl)
-            else:
-                lines.extend(code_block_buf)
+                    digit_items.append((i, cx, int(cl.strip())))
+                else:
+                    content_xs.append(cx)
+            # 如果有纯数字行且有内容行，用 x 坐标判断：行号 x 明显小于内容 x
+            remove_set = set()
+            if digit_items and content_xs:
+                min_content_x = min(content_xs)
+                for idx, dx, num in digit_items:
+                    if dx < min_content_x - 3:
+                        remove_set.add(idx)
+            # 兜底：如果没有内容行参照，用序列检测
+            if not content_xs and digit_items:
+                nums = [n for _, _, n in digit_items]
+                if nums == list(range(1, max(nums) + 1)) and len(nums) >= 2:
+                    remove_set = set(i for i, _, _ in digit_items)
+            for i, (cl, _) in enumerate(code_block_buf):
+                if i not in remove_set:
+                    lines.append(cl)
             code_block_buf.clear()
         # 判断一行是否写满了页面宽度（自动换行），右边距 < 80 视为写满
         def _is_line_full(x1):
@@ -492,7 +502,7 @@ def pdf_to_markdown(pdf_path: str) -> str:
                 in_code_block = False
 
             if is_code:
-                code_block_buf.append(line_text)
+                code_block_buf.append((line_text, line_x))
                 prev_line = line_text
                 prev_y = line_y
                 prev_page = page_num
