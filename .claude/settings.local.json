@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python import_export.py:*)",
+      "Bash(python -c \"\nfrom import_export import pdf_to_markdown\nmd = pdf_to_markdown\\(r''D:\\\\A-日常\\\\有道云\\\\weixinobU7VjswldrMDUXHaTIz2RO4R4Yk_2026-03-22_1774183709815\\\\001模板集合\\\\独立开发写作流程.note.pdf''\\)\nprint\\(md[:3000]\\)\n\")",
+      "Bash(python -c:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git rm:*)",
+      "Bash(python:*)",
+      "Bash(NOTION_TOKEN=\"ntn_h48211614475PxhCV9m6pNsiURRzqwLumXQCdAFa7Dv46x\" python:*)",
+      "Bash(NOTION_TOKEN=\"ntn_h48211614475PxhCV9m6pNsiURRzqwLumXQCdAFa7Dv46x\" NOTION_PARENT_PAGE_ID=\"32c11f5d15e7806b99cfc464ca6fbd56\" python:*)",
+      "Bash(python3:*)",
+      "Bash(NOTION_TOKEN=\"ntn_l48211614473o7ifWvjy6SOcpyVuU8dgAHfdnUjx0vy3w4\" NOTION_PARENT_PAGE_ID=\"32c11f5d15e7806b99cfc464ca6fbd56\" python3:*)",
+      "Bash(NOTION_TOKEN=\"ntn_l48211614473o7ifWvjy6SOcpyVuU8dgAHfdnUjx0vy3w4\" NOTION_PARENT_PAGE_ID=\"32c11f5d15e7806b99cfc464ca6fbd56\" python3 -c \"\nimport sys\nsys.path.insert\\(0, ''.''\\)\nfrom import_export import ExportImporter\nimport os\n\ntarget_dir = ''D:/A-日常/有道云/weixinobU7VjswldrMDUXHaTIz2RO4R4Yk_2026-03-22_1774183709815/赚钱Inbox/场景差课程''\n\nimporter = ExportImporter\\(\\)\n\nsupported_ext = {''.md'', ''.pdf'', ''.html'', ''.htm'', ''.txt'', ''.note''}\nfiles = []\nfor f in sorted\\(os.listdir\\(target_dir\\)\\):\n    ext = os.path.splitext\\(f\\)[1].lower\\(\\)\n    if ext in supported_ext:\n        files.append\\(os.path.join\\(target_dir, f\\)\\)\n\nprint\\(f''Found {len\\(files\\)} files to import''\\)\nfor i, filepath in enumerate\\(files, 1\\):\n    rel = os.path.relpath\\(filepath, target_dir\\).replace\\(os.sep, ''/''\\)\n    print\\(f''[{i}/{len\\(files\\)}] {rel}''\\)\n    ok = importer.push_file\\(filepath, target_dir\\)\n    if not ok:\n        print\\(f''  [FAILED]''\\)\n    else:\n        print\\(f''  [OK]''\\)\n\nprint\\(f''\\\\nDone!''\\)\n\")",
+      "Bash(NOTION_TOKEN=\"ntn_l48211614473o7ifWvjy6SOcpyVuU8dgAHfdnUjx0vy3w4\" NOTION_PARENT_PAGE_ID=\"32c11f5d15e7806b99cfc464ca6fbd56\" python3 -c \"\nimport sys, io\nsys.stdout = io.TextIOWrapper\\(sys.stdout.buffer, encoding=''utf-8''\\)\nsys.stderr = io.TextIOWrapper\\(sys.stderr.buffer, encoding=''utf-8''\\)\nsys.path.insert\\(0, ''.''\\)\nfrom import_export import ExportImporter\nimport os\n\ntarget_dir = ''D:/A-日常/有道云/weixinobU7VjswldrMDUXHaTIz2RO4R4Yk_2026-03-22_1774183709815/赚钱Inbox/场景差课程''\nimporter = ExportImporter\\(\\)\n\nsupported_ext = {''.md'', ''.pdf'', ''.html'', ''.htm'', ''.txt'', ''.note''}\nfiles = []\nfor f in sorted\\(os.listdir\\(target_dir\\)\\):\n    ext = os.path.splitext\\(f\\)[1].lower\\(\\)\n    if ext in supported_ext:\n        files.append\\(os.path.join\\(target_dir, f\\)\\)\n\nprint\\(f''Found {len\\(files\\)} files to import''\\)\nfor i, filepath in enumerate\\(files, 1\\):\n    rel = os.path.relpath\\(filepath, target_dir\\).replace\\(os.sep, ''/''\\)\n    print\\(f''[{i}/{len\\(files\\)}] {rel}''\\)\n    ok = importer.push_file\\(filepath, target_dir\\)\n    if not ok:\n        print\\(f''  [FAILED]''\\)\n    else:\n        print\\(f''  [OK]''\\)\nprint\\(''\\\\nDone!''\\)\n\")"
+    ]
+  }
+}
