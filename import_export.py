@@ -28,9 +28,11 @@ def log(msg):
 def _extract_quote_ranges(page) -> list[tuple]:
     """检测引用块的竖线标记，返回 [(y0, y1), ...] 表示引用区域的 y 范围。
     有道云导出的引用是左侧一条灰色竖线。
+    排除表格边框和代码块边框（同一 y 范围有多条竖线在不同 x 位置）。
     """
     drawings = page.get_drawings()
-    ranges = []
+    # 收集所有候选竖线: (x, y0, y1)
+    candidates = []
     for d in drawings:
         rect = d["rect"]
         w = rect[2] - rect[0]
@@ -38,8 +40,16 @@ def _extract_quote_ranges(page) -> list[tuple]:
         fill = d.get("fill")
         # 细竖线（宽 < 5, 高 > 15），非黑非白填充
         if w < 5 and h > 15 and fill and fill != (1.0, 1.0, 1.0) and fill != (0.0, 0.0, 0.0):
-            # 灰色或彩色都算
-            ranges.append((rect[1], rect[3]))
+            candidates.append((rect[0], rect[1], rect[3]))
+
+    # 过滤：如果同一 y 范围内有多条竖线在不同 x 位置，说明是表格/代码块边框，不是引用
+    ranges = []
+    for x, y0, y1 in candidates:
+        peers = sum(1 for ox, oy0, oy1 in candidates
+                    if abs(oy0 - y0) < 5 and abs(oy1 - y1) < 5 and abs(ox - x) > 10)
+        if peers == 0:
+            # 孤立的竖线，是引用标记
+            ranges.append((y0, y1))
     # 合并重叠区域
     if ranges:
         ranges.sort()
@@ -188,27 +198,27 @@ def pdf_to_markdown(pdf_path: str) -> str:
                         rows = tab.extract()
                         if not rows:
                             continue
-                        # 过滤掉被表格误吞的非表格行（最后一行如果其余列全是None且内容很长）
+                        # 过滤掉被表格误吞的非表格行（其余列全是 None 的单列行）
                         clean_rows = []
                         clean_row_indices = []
                         for ri, row in enumerate(rows):
-                            if all(cell is None for cell in row[1:]) and row[0] and len(row[0]) > 100:
+                            if all(cell is None for cell in row[1:]):
                                 continue
                             clean_rows.append(row)
                             clean_row_indices.append(ri)
-                        if not clean_rows:
+                        # 至少需要 2 行（表头 + 1 行数据）才算有效表格
+                        if len(clean_rows) < 2:
                             continue
 
                         # 用实际有效行的 cell 坐标计算精确的表格 y 范围
-                        # tab.cells 是 [(x0,y0,x1,y1), ...] 每个 cell 的 rect
+                        # tab.cells 可能因合并单元格而不等于 row_count * col_count
+                        # 从末尾取 clean_rows 对应的 cells
                         cells = tab.cells
                         cols = tab.col_count
-                        if cells and clean_row_indices:
-                            first_row_idx = clean_row_indices[0]
-                            last_row_idx = clean_row_indices[-1]
-                            # 每行有 cols 个 cell
-                            first_cell = cells[first_row_idx * cols]
-                            last_cell = cells[last_row_idx * cols + cols - 1]
+                        n_clean_cells = len(clean_rows) * cols
+                        if cells and n_clean_cells <= len(cells):
+                            first_cell = cells[len(cells) - n_clean_cells]
+                            last_cell = cells[-1]
                             actual_rect = (tab.bbox[0], first_cell[1], tab.bbox[2], last_cell[3])
                         else:
                             actual_rect = tab.bbox
